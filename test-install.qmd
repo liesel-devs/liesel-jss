@@ -18,6 +18,5 @@ import liesel.model as lsl
 import liesel.goose as gs
 
 jnp.array(1.0) + jnp.array(1.0)
-
 print("Liesel and RLiesel installed successfully")
 ```
