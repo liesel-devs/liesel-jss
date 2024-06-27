@@ -1,0 +1,23 @@
+```{r}
+library(rliesel)
+y <- rnorm(10)
+
+mod <- liesel(
+  response = y,
+  distribution = "Normal",
+  predictors = list(
+    loc = predictor(~1, inverse_link = "Identity"),
+    scale = predictor(~1, inverse_link = "Exp")
+  )
+)
+```
+
+```{python}
+import jax.numpy as jnp
+import liesel.model as lsl
+import liesel.goose as gs
+
+jnp.array(1.0) + jnp.array(1.0)
+
+print("Liesel and RLiesel installed successfully")
+```

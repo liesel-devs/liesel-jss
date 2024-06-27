@@ -1,0 +1,19 @@
+name: liesel-install-jss
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - blas=*=netlib
+  - pip
+  - pygraphviz
+  - python
+  - quarto
+  - r-base
+  - r-ggplot2
+  - r-knitr
+  - r-mgcv
+  - r-remotes
+  - r-reticulate
+  - r-rmarkdown
+  - pip:
+    - liesel
