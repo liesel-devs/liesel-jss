@@ -1,6 +1,6 @@
 # liesel-install-jss
 
-Liesel runs natively on Linux and macOS. On Windows, it can be installed via the Windows Subsystem for Linux (WSL).
+Liesel runs natively on Linux and macOS. On Windows, installing Liesel natively is possible but more complicated. We therefore recommend using the Windows Subsystem for Linux (WSL) to run Liesel on Windows.
 
 ## Installing WSL on Windows
 
