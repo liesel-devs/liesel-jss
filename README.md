@@ -76,3 +76,20 @@ quarto render supplement/1-running-example/example.qmd
 ```
 
 The results are stored in the file supplement/1-running-example/example.html.
+
+### Case study: Sampling schemes
+
+This case study requires the installation of a few additional R packages:
+
+```
+conda install r-dplyr r-forcats r-stringr r-tidyr
+Rscript -e "remotes::install_cran('SemiPar')"
+```
+
+Now, run the case study as follows:
+
+```
+quarto render supplement/2-case-study-sampling/case-study.qmd
+```
+
+The results are stored in the file supplement/2-case-study-sampling/case-study.html.
