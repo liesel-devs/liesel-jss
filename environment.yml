@@ -3,6 +3,7 @@ channels:
   - conda-forge
   - nodefaults
 dependencies:
+  # - blas=*=netlib
   - pip
   - pygraphviz
   - python
