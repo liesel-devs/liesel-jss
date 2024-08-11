@@ -1,0 +1,314 @@
+---
+title: "Case Study 1: Sampling Schemes"
+author:
+  - Hannes Riebl
+  - Paul F.V. Wiemann
+  - Thomas Kneib
+format:
+  html:
+    embed-resources: true
+---
+
+Code documentation for the first case study on different sampling schemes in the JSS paper "Liesel: A Probabilistic Programming Framework for Developing Semi-Parametric Regression Models and Custom Bayesian Inference Algorithms" by Hannes Riebl, Paul F.V. Wiemann and Thomas Kneib.
+
+```{r}
+library(dplyr)
+library(forcats)
+library(ggplot2)
+library(reticulate)
+library(rliesel)
+library(scales)
+library(SemiPar)
+library(stringr)
+library(tibble)
+library(tidyr)
+
+set.seed(1337)
+data(lidar)
+
+options(scipen=999)
+
+theme_set(theme_minimal())
+
+theme_update(
+  text = element_text(size = 12),
+  axis.text = element_text(color = "black", size = NA),
+  axis.text.x = element_text(margin = margin(4, 0, 0, 0, "pt")),
+  axis.text.y = element_text(margin = margin(0, 4, 0, 0, "pt")),
+  axis.ticks = element_line(),
+  axis.ticks.length = unit(4, "pt"),
+  axis.title.x = element_text(margin = margin(7.5, 0, 0, 0, "pt")),
+  axis.title.y = element_text(margin = margin(0, 7.5, 0, 0, "pt")),
+  legend.text = element_text(size = NA),
+  panel.border = element_rect(fill = NA),
+  # panel.grid.major = element_blank(),
+  # panel.grid.minor = element_blank(),
+  strip.text = element_text(color = "black", size = NA)
+)
+
+my_palette <- c("#efa9b5", "#b6eaae", "#a3d4f5", "#d1eafa")
+```
+
+```{python}
+import time
+
+import numpy as np
+import pandas as pd
+import tensorflow_probability.substrates.jax.bijectors as tfb
+
+import liesel.model as lsl
+import liesel.goose as gs
+```
+
+{{< include models.qmd >}}
+
+## Results from the IWLS-Gibbs sampling scheme
+
+```{python}
+builder = lsl.dist_reg_mcmc(model1, seed=1337, num_chains=4)
+builder.set_duration(warmup_duration=1000, posterior_duration=1000)
+builder.positions_included = ["loc", "scale"]
+builder.set_jitter_fns(None)
+
+engine = builder.build()
+engine.sample_all_epochs()
+```
+
+```{python}
+results = engine.get_results()
+samples = results.get_posterior_samples()
+
+loc = np.asarray(samples["loc"])
+loc = np.reshape(loc, -1)
+
+scale = np.asarray(samples["scale"])
+scale = np.reshape(scale, -1)
+```
+
+```{r}
+#| label: splines
+
+df <- data.frame(
+  sample = rep(1:4000, each = nrow(lidar)),
+  range  = rep(lidar$range, times = 4000),
+  loc    = py$loc,
+  scale  = py$scale
+)
+
+df <- df %>%
+  pivot_longer(c(loc, scale), names_to = "node") %>%
+  mutate(node = case_when(node == "loc" ~ "Mean", TRUE ~ "Standard deviation"))
+
+df_mean <- df %>%
+  group_by(node, range) %>%
+  summarize(value = mean(value), .groups = "drop")
+
+df_lidar <- lidar %>%
+  mutate(node = "Mean", value = logratio)
+
+ggplot(df, aes(range, value)) +
+  facet_wrap(vars(node), scales = "free") +
+  geom_point(data = df_lidar) +
+  geom_line(aes(group = sample), alpha = 0.01) +
+  geom_line(data = df_mean, color = 2, size = 1) +
+  scale_x_continuous(expand = c(0, 0)) +
+  xlab("Range") +
+  ylab(NULL)
+```
+
+## Timings of the different sampling schemes
+
+```{python}
+def time_scheme(model, kernels):
+    builder = gs.EngineBuilder(seed=1337, num_chains=1)
+
+    for kernel in kernels:
+        builder.add_kernel(kernel)
+
+    builder.set_model(gs.LieselInterface(model))
+    builder.set_initial_values(model.state)
+
+    builder.set_duration(warmup_duration=1000, posterior_duration=1000)
+
+    engine = builder.build()
+    engine.sample_next_epoch()
+
+    before = time.time()
+
+    engine.sample_next_epoch()
+
+    after = time.time()
+    compile_time = after - before
+    before = time.time()
+
+    for _ in range(len(builder.epochs) - 3):
+        engine.sample_next_epoch()
+
+    after = time.time()
+    warmup_time = after - before
+    before = time.time()
+
+    engine.sample_next_epoch()
+
+    after = time.time()
+    posterior_time = after - before
+
+    return compile_time, warmup_time, posterior_time
+
+
+times = pd.DataFrame(columns=["Compilation", "Warmup", "Posterior"])
+times.loc["IWLS-Gibbs"] = time_scheme(model1, kernels_iwls_gibbs)
+times.loc["NUTS-Gibbs"] = time_scheme(model1, kernels_nuts_gibbs)
+times.loc["NUTS1"] = time_scheme(model2, kernels_nuts1)
+times.loc["NUTS2"] = time_scheme(model2, kernels_nuts2)
+times.loc["HMC2"] = time_scheme(model2, kernels_hmc2)
+```
+
+```{r}
+#| label: timings
+
+times <- py$times
+
+times <- times %>%
+  rownames_to_column("Scheme") %>%
+  pivot_longer(-Scheme, names_to = "Stage", values_to = "Seconds") %>%
+  mutate(Scheme = fct_inorder(Scheme), Stage = fct_inorder(Stage)) %>%
+  mutate(Stage = fct_rev(Stage))
+
+ggplot(times) +
+  geom_col(aes(Scheme, Seconds, fill = Stage)) +
+  scale_y_continuous(expand = c(0, 0, 0.05, 0)) +
+  scale_fill_brewer(type = "qual", palette = 7)
+```
+
+## ESS of the different sampling schemes
+
+```{python}
+def ess_scheme(model, kernels):
+    results = sample_scheme(model, kernels, num_chains=30)
+    summary = gs.Summary(results, per_chain=True)
+    summary = summary.to_dataframe()
+
+    ess = summary.filter(["ess_bulk", "ess_tail"])
+    ess = ess.reset_index().rename(columns={"variable": "parameter"})
+    return ess
+
+
+ess = [
+    ess_scheme(model1, kernels_iwls_gibbs).assign(Scheme="IWLS-Gibbs"),
+    ess_scheme(model1, kernels_nuts_gibbs).assign(Scheme="NUTS-Gibbs"),
+    ess_scheme(model2, kernels_nuts1).assign(Scheme="NUTS1"),
+    ess_scheme(model2, kernels_nuts2).assign(Scheme="NUTS2"),
+    ess_scheme(model2, kernels_hmc2).assign(Scheme="HMC2"),
+]
+
+ess = pd.concat(ess).reset_index()
+```
+
+```{r}
+#| label: ess-bulk
+
+ess <- py$ess
+
+ess <- ess %>%
+  mutate(
+    Scheme = fct_inorder(Scheme),
+    param_type = case_when(
+      str_detect(parameter, "_p[0-9]+_beta") ~ "Intercept",
+      str_detect(parameter, "_np[0-9]+_beta") ~ "Spline ~ beta",
+      str_detect(parameter, "_np[0-9]+_tau2") ~ "Spline ~ tau^2"
+    )
+  )
+
+ggplot(ess, aes(Scheme, ess_bulk)) +
+  geom_jitter(aes(color = param_type)) +
+  geom_boxplot(fill = NA, outlier.shape = NA) +
+  scale_color_manual(
+    name = "Parameter type",
+    labels = label_parse(),
+    values = my_palette
+  ) +
+  coord_cartesian(ylim = c(0, 2000)) +
+  ylab("Bulk ESS")
+```
+
+```{r}
+#| label: ess-tail
+
+ggplot(ess, aes(Scheme, ess_tail)) +
+  geom_jitter(aes(color = param_type)) +
+  geom_boxplot(fill = NA, outlier.shape = NA) +
+  scale_color_manual(
+    name = "Parameter type",
+    labels = label_parse(),
+    values = my_palette
+  ) +
+  coord_cartesian(ylim = c(0, 2000)) +
+  ylab("Tail ESS")
+```
+
+### ESS per second
+
+```{r}
+#| label: ess-bulk-per-s
+
+ess <- ess %>%
+  left_join(times %>% filter(Stage == "Posterior"), by = "Scheme") %>%
+  mutate(
+    ess_bulk_per_s = ess_bulk / Seconds,
+    ess_tail_per_s = ess_tail / Seconds
+  )
+
+ggplot(ess, aes(Scheme, ess_bulk_per_s)) +
+  geom_jitter(aes(color = param_type)) +
+  geom_boxplot(fill = NA, outlier.shape = NA) +
+  scale_color_manual(
+    name = "Parameter type",
+    labels = label_parse(),
+    values = my_palette
+  ) +
+  coord_cartesian(ylim = c(0, 5000)) +
+  ylab("Bulk ESS / Second")
+```
+
+```{r}
+#| label: ess-tail-per-s
+
+ggplot(ess, aes(Scheme, ess_tail_per_s)) +
+  geom_jitter(aes(color = param_type)) +
+  geom_boxplot(fill = NA, outlier.shape = NA) +
+  scale_color_manual(
+    name = "Parameter type",
+    labels = label_parse(),
+    values = my_palette
+  ) +
+  coord_cartesian(ylim = c(0, 5000)) +
+  ylab("Tail ESS / Second")
+```
+
+```{r}
+tab_ess <- ess %>%
+  group_by(Scheme) %>%
+  summarize(
+    min     = quantile(ess_bulk, 0.05),
+    q25     = quantile(ess_bulk, 0.25),
+    median  = quantile(ess_bulk, 0.5),
+    q75     = quantile(ess_bulk, 0.75),
+    max     = quantile(ess_bulk, 0.95),
+    .groups = "drop"
+  )
+
+tab_ess_per_s <- ess %>%
+  group_by(Scheme) %>%
+  summarize(
+    min     = quantile(ess_bulk_per_s, 0.05),
+    q25     = quantile(ess_bulk_per_s, 0.25),
+    median  = quantile(ess_bulk_per_s, 0.5),
+    q75     = quantile(ess_bulk_per_s, 0.75),
+    max     = quantile(ess_bulk_per_s, 0.95),
+    .groups = "drop"
+  )
+
+cat(gsub("\\\\hline\n", "& ", knitr::kable(tab_ess, "latex", 2)))
+cat(gsub("\\\\hline\n", "& ", knitr::kable(tab_ess_per_s, "latex", 2)))
+```

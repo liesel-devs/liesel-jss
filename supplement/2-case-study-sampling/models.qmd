@@ -1,0 +1,82 @@
+```{r}
+gb <- liesel(
+  response = lidar$logratio,
+  distribution = "Normal",
+  predictors = list(
+    loc = predictor(~ s(range, bs = "ps"), inverse_link = "Identity"),
+    scale = predictor(~ s(range, bs = "ps"), inverse_link = "Exp")
+  ),
+  data = lidar,
+  builder = TRUE
+)
+```
+
+```{python}
+# model with log-transformed tau2's
+
+gb = r.gb
+
+_vars = {var.name: var for var in gb.vars}
+
+_vars["loc_np0_tau2"].value = 1.0
+_vars["scale_np0_tau2"].value = 1.0
+
+model1 = gb.build_model(copy=True)
+
+gb.transform(_vars["loc_np0_tau2"], tfb.Exp)
+gb.transform(_vars["scale_np0_tau2"], tfb.Exp)
+
+model2 = gb.build_model()
+
+# 5 different sampling schemes
+
+kernels_iwls_gibbs = [
+    gs.IWLSKernel(["loc_p0_beta"]),
+    gs.IWLSKernel(["loc_np0_beta"]),
+    lsl.tau2_gibbs_kernel(model1.groups()["loc_np0"]),
+    gs.IWLSKernel(["scale_p0_beta"]),
+    gs.IWLSKernel(["scale_np0_beta"]),
+    lsl.tau2_gibbs_kernel(model1.groups()["scale_np0"]),
+]
+
+kernels_nuts_gibbs = [
+    gs.NUTSKernel(["loc_p0_beta"]),
+    gs.NUTSKernel(["loc_np0_beta"]),
+    lsl.tau2_gibbs_kernel(model1.groups()["loc_np0"]),
+    gs.NUTSKernel(["scale_p0_beta"]),
+    gs.NUTSKernel(["scale_np0_beta"]),
+    lsl.tau2_gibbs_kernel(model1.groups()["scale_np0"]),
+]
+
+loc_param = "loc_p0_beta", "loc_np0_beta", "loc_np0_tau2_transformed"
+scale_param = "scale_p0_beta", "scale_np0_beta", "scale_np0_tau2_transformed"
+
+kernels_nuts1 = [gs.NUTSKernel(loc_param + scale_param)]
+kernels_nuts2 = [gs.NUTSKernel(loc_param), gs.NUTSKernel(scale_param)]
+
+kernels_hmc2 = [
+    gs.HMCKernel(loc_param, num_integration_steps = 64),
+    gs.HMCKernel(scale_param, num_integration_steps = 64)
+]
+
+
+# helper function that samples the model and returns the results
+
+def sample_scheme(model, kernels, num_chains):
+    builder = gs.EngineBuilder(seed=1337, num_chains=num_chains)
+
+    for kernel in kernels:
+        builder.add_kernel(kernel)
+
+    builder.set_model(gs.LieselInterface(model))
+    builder.set_initial_values(model.state)
+
+    builder.set_duration(warmup_duration=1000, posterior_duration=1000)
+
+    builder.positions_included = ["loc_np0_tau2", "scale_np0_tau2"]
+
+    engine = builder.build()
+    engine.sample_all_epochs()
+    results = engine.get_results()
+    return results
+```

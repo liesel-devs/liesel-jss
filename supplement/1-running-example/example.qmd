@@ -1,0 +1,245 @@
+---
+title: "Running Example: Bayesian Regression"
+author:
+  - Hannes Riebl
+  - Paul F.V. Wiemann
+  - Thomas Kneib
+format:
+  html:
+    embed-resources: true
+---
+
+Code documentation for the running example on Bayesian regression in the JSS paper "Liesel: A Probabilistic Programming Framework for Developing Semi-Parametric Regression Models and Custom Bayesian Inference Algorithms" by Hannes Riebl, Paul F.V. Wiemann and Thomas Kneib.
+
+## Section 2.2: Example: The Bayesian linear model
+
+### Generate data
+
+```{python}
+from typing import NamedTuple
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+class Data(NamedTuple):
+    design_matrix: np.ndarray
+    response: np.ndarray
+
+
+def make_data(n: int, seed: int) -> Data:
+    np.random.seed(seed)
+    beta = np.array([1, 2, 3], dtype=np.float32)
+    sigma = 1.1
+    design_matrix = np.float32(np.random.normal(size=(n, 3)))
+    noise = sigma * np.float32(np.random.normal(size=n))
+
+    y = np.dot(design_matrix, beta) + noise
+
+    return Data(design_matrix, y)
+
+
+data = make_data(100, 321)
+
+beta_hat = np.linalg.solve(data.design_matrix.T @ data.design_matrix, data.design_matrix.T @ data.response)
+y_hat = data.design_matrix @ beta_hat
+plt.plot(data.response, y_hat, "o")
+```
+
+### Build model
+
+```{python}
+import liesel.model as lsl
+import tensorflow_probability.substrates.jax as tfp
+
+tfd = tfp.distributions
+
+# we build the model bottom-up
+
+# first we define the prior for sigma
+sigma = lsl.Param(
+    1.0,
+    lsl.Dist(tfd.HalfCauchy, loc=0.0, scale=1.0),
+    name="sigma",
+)
+
+# then the conditional prior for beta which takes the sigma variable as an argument
+k = data.design_matrix.shape[1]
+beta = lsl.Param(
+    np.zeros(k),
+    lsl.Dist(
+        lambda s: tfd.MultivariateNormalDiag(
+            loc=np.zeros(k, dtype=np.float32),
+            scale_diag=s**2 * 100 * np.ones(k, dtype=np.float32),
+        ),
+        s=sigma,
+    ),
+    name="beta",
+)
+
+# then the predictor (takes the variable beta as an argument)
+y_hat = lsl.Var(
+    lsl.Calc(
+        lambda b: data.design_matrix @ b,
+        b=beta,
+    ),
+    name="y_hat",
+)
+
+# and finally the likelihood (takes the variables y_hat and sigma as arguments)
+y = lsl.Obs(
+    data.response,
+    lsl.Dist(tfd.Normal, loc=y_hat, scale=sigma),
+    name="y",
+)
+
+# now, we can build the model using the graph builder
+gb = lsl.GraphBuilder()
+gb.add(y)
+
+model = gb.build_model()
+```
+
+### Visualize model
+
+```{python}
+# visualize the model
+lsl.plot_vars(model)
+```
+
+```{python}
+# visualize the nodes
+lsl.plot_nodes(model)
+```
+
+## Section 2.3: Main concepts and implementation details: Graph manipulations
+
+### Transform parameter
+
+```{python}
+# pop nodes and vars from the model
+nodes, vars = model.pop_nodes_and_vars()
+# delete the model since pop invalidates it
+del model
+
+# create a new GraphBuilder and transform sigma
+# add the nodes and vars back
+gb = lsl.GraphBuilder()
+gb.transform(vars["sigma"], tfp.bijectors.Exp)
+gb.add(vars["y"])
+
+model = gb.build_model()
+```
+
+### Visualize model
+
+```{python}
+# visualize the model
+lsl.plot_vars(model)
+```
+
+## Section 3.1: Continued example: Estimating the Bayesian linear model
+
+### Run MCMC
+
+```{python}
+import jax.numpy as jnp
+import liesel.goose as gs
+
+interface = lsl.GooseModel(model)
+
+
+def draw_beta(prng_key, model_state):
+    position = interface.extract_position(["y", "sigma"], model_state)
+    y = position["y"]
+    sigma = position["sigma"]
+
+    sigma_star = jnp.linalg.inv(data.design_matrix.T @ data.design_matrix + jnp.eye(data.design_matrix.shape[1]))
+    mu_star = sigma_star @ data.design_matrix.T @ y
+    dist = tfd.MultivariateNormalFullCovariance(mu_star, sigma**2 * sigma_star)
+    new_beta = dist.sample(seed=prng_key)
+
+    return {"beta": new_beta}
+
+
+builder = gs.EngineBuilder(seed=1, num_chains=4)
+builder.set_model(interface)
+builder.set_initial_values(model.state)
+builder.add_kernel(gs.GibbsKernel(["beta"], draw_beta))
+builder.add_kernel(gs.HMCKernel(["sigma_transformed"]))
+builder.set_duration(warmup_duration=1000, posterior_duration=1000)
+builder.positions_included = ["sigma"]
+engine = builder.build()
+engine.sample_all_epochs()
+```
+
+### Summarize results
+
+```{python}
+results = engine.get_results()
+gs.Summary(results)
+```
+
+## Section 4.2: Continued example: Building advanced regression models with RLiesel
+
+### Logistic regression model
+
+```{r}
+library(reticulate)
+
+n <- 100
+beta <- c(1, 2, 3)
+sigma <- 1.1
+
+design_matrix <- drop(py$data$design_matrix)
+response <- c(drop(py$data$response))
+
+noise <- response - drop(design_matrix %*% beta)
+
+z <- rnorm(n)
+y <- rbinom(n, 1, plogis(design_matrix %*% beta + 3 * sin(2 * z)))
+plot(z, y)
+```
+
+```{r}
+library(rliesel)
+
+model <- liesel(
+  response = y,
+  distribution = "Bernoulli",
+  predictors = list(
+    logits = predictor(~design_matrix + s(z))
+  )
+)
+```
+
+#### Run MCMC
+
+```{python}
+#| eval: false
+
+builder = lsl.dist_reg_mcmc(r.model, seed=1337, num_chains=4)
+builder.set_duration(warmup_duration=1000, posterior_duration=1000)
+engine = builder.build()
+
+engine.sample_all_epochs()
+gs.Summary(engine.get_results())
+```
+
+### Location-scale regression model
+
+```{r}
+y <- drop(design_matrix %*% beta + exp(3 * sin(2 * z)) * noise)
+plot(z, y)
+```
+
+```{r}
+model <- liesel(
+  response = y,
+  distribution = "Normal",
+  predictors = list(
+    loc = predictor(~design_matrix, inverse_link = "Identity"),
+    scale = predictor(~s(z), inverse_link = "Exp")
+  )
+)
+```
