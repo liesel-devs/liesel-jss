@@ -64,3 +64,15 @@ Installing Liesel natively on Windows is possible but incompatible with Conda. I
 ## Supplementary material
 
 The instructions above install Liesel and RLiesel from PyPI and GitHub, but the source code is included in the supplementary material for documentation purposes (liesel-0.2.9.zip and rliesel-0.0.2.zip).
+
+The running example and the case studies use [Quarto](https://quarto.org/), a publishing system that allows for a seamless integration of Python and R code as well as the corresponding documentation and renders the computation results (tables and figures) to high-quality PDF or HTML documents.
+
+### Running example: Bayesian regression
+
+Make sure you're still in the liesel-jss directory and have the liesel-jss environment activated (see [above](#installing-liesel)). If that's the case, execute the running example as follows:
+
+```
+quarto render supplement/1-running-example/example.qmd
+```
+
+The results are stored in the file supplement/1-running-example/example.html.
