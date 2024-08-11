@@ -47,7 +47,7 @@ quarto render test-install.qmd
 
 Don't worry if you see a few messages and warnings on your console, for example about JAX falling back to CPU or Liesel not being able to update certain nodes during initialization. The warnings about nodes not being updated are due to the fact that RLiesel constructs the model step by step, and some quantities cannot be computed before the model is complete. At the end, when RLiesel is finished, the returned model is fully functional and can be sampled with MCMC.
 
-Congratulations! If the file test-install.html was created and ends with the message "Liesel and RLiesel installed successfully", everything worked out as expected. On Windows, you may find the file by opening the File Explorer, then clicking on Linux in the sidebar, then on Ubuntu, home, your user name, liesel-jss and test-install.html.
+Verify that the file test-install.html was created and ends with the message "Liesel and RLiesel installed successfully". On Windows, you may find the file by opening the File Explorer, then clicking on Linux in the sidebar, then on Ubuntu, home, your user name, liesel-jss and test-install.html.
 
 ### Installing Liesel natively on Windows (without WSL, not recommended)
 
@@ -64,4 +64,3 @@ Installing Liesel natively on Windows is possible but incompatible with Conda. I
 ## Supplementary material
 
 The installation instructions above install Liesel and RLiesel from PyPI and GitHub, but the source code is included in the supplementary material for documentation purposes (liesel-0.2.9.zip and rliesel-0.0.2.zip).
-
