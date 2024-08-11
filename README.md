@@ -93,3 +93,7 @@ quarto render supplement/2-case-study-sampling/case-study.qmd
 ```
 
 The results are stored in the file supplement/2-case-study-sampling/case-study.html.
+
+### Case study: Species counts
+
+TODO
