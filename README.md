@@ -8,7 +8,7 @@ Liesel runs natively on Linux and macOS. On Windows, installing Liesel natively 
 
 ### Installing WSL (only on Windows)
 
-- Open the Windows Command Prompt in **administrator** mode by right-clicking and selecting "Run as administrator".
+- Open the Windows Command Prompt in administrator mode by right-clicking and selecting "Run as administrator".
 - Run `wsl --install -d Ubuntu`.
 - Reboot your computer.
 - Follow the instructions to set a user name and password.
