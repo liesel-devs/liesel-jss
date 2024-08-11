@@ -31,7 +31,7 @@ For details, see [the official Micromamba installation instructions](https://mam
 
 Clone this repository and create a Conda environment with Liesel and RLiesel installed:
 
-```
+```sh
 git clone https://github.com/hriebl/liesel-jss.git
 cd liesel-jss
 conda env create -f environment.yml
@@ -41,7 +41,7 @@ Rscript -e "remotes::install_github('liesel-devs/rliesel@v0.0.2')"
 
 Check if Liesel and RLiesel are installed and working:
 
-```
+```sh
 quarto render test-install.qmd
 ```
 
@@ -71,7 +71,7 @@ The running example and the case studies use [Quarto](https://quarto.org/), a pu
 
 Make sure you're still in the liesel-jss directory and have the liesel-jss environment activated (see [above](#installing-liesel)). If that's the case, execute the running example as follows:
 
-```
+```sh
 quarto render supplement/1-running-example/example.qmd
 ```
 
@@ -81,14 +81,14 @@ The results are stored in the file supplement/1-running-example/example.html.
 
 This case study requires the installation of a few additional R packages:
 
-```
+```sh
 conda install r-dplyr r-forcats r-stringr r-tidyr
 Rscript -e "remotes::install_cran('SemiPar')"
 ```
 
 Now, run the case study as follows:
 
-```
+```sh
 quarto render supplement/2-case-study-sampling/case-study.qmd
 ```
 
