@@ -1,8 +1,12 @@
 # liesel-jss
 
+This repository contains detailed installation instructions for Liesel and RLiesel as well as the supplementary material for the manuscript "Liesel: A Probabilistic Programming Framework for Developing Semi-Parametric Regression Models and Custom Bayesian Inference Algorithms" by Hannes Riebl, Paul F.V. Wiemann, and Thomas Kneib. Following this README, you should be able to replicate the running example and the case studies from the manuscript.
+
+## Installation
+
 Liesel runs natively on Linux and macOS. On Windows, installing Liesel natively is possible but more complicated. We therefore recommend using the Windows Subsystem for Linux (WSL) to run Liesel on Windows.
 
-## Installing WSL on Windows
+### Installing WSL (only on Windows)
 
 - Open the Windows Command Prompt in **administrator** mode by right-clicking and selecting "Run as administrator".
 - Run `wsl --install -d Ubuntu`.
@@ -11,7 +15,7 @@ Liesel runs natively on Linux and macOS. On Windows, installing Liesel natively 
 
 For details, see [the official WSL installation instructions](https://learn.microsoft.com/en-us/windows/wsl/install).
 
-## Installing Conda
+### Installing Conda
 
 The easiest way to install Liesel is via Conda (or Miniconda, or Mamba, or Micromamba). If you don't have any Conda variant on your system yet, we recommend installing Micromamba:
 
@@ -23,15 +27,15 @@ The easiest way to install Liesel is via Conda (or Miniconda, or Mamba, or Micro
 
 For details, see [the official Micromamba installation instructions](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html).
 
-## Installing Liesel
+### Installing Liesel
 
 Clone this repository and create a Conda environment with Liesel and RLiesel installed:
 
 ```
-git clone https://github.com/hriebl/liesel-install-jss.git
-cd liesel-install-jss
+git clone https://github.com/hriebl/liesel-jss.git
+cd liesel-jss
 conda env create -f environment.yml
-conda activate liesel-install-jss
+conda activate liesel-jss
 Rscript -e "remotes::install_github('liesel-devs/rliesel@v0.0.2')"
 ```
 
@@ -43,4 +47,21 @@ quarto render test-install.qmd
 
 Don't worry if you see a few messages and warnings on your console, for example about JAX falling back to CPU or Liesel not being able to update certain nodes during initialization. The warnings about nodes not being updated are due to the fact that RLiesel constructs the model step by step, and some quantities cannot be computed before the model is complete. At the end, when RLiesel is finished, the returned model is fully functional and can be sampled with MCMC.
 
-Congratulations! If the file test-install.html was created and ends with the message "Liesel and RLiesel installed successfully", everything worked out as expected. On Windows, you may find the file by opening the File Explorer, then clicking on Linux in the sidebar, then on Ubuntu, home, your user name, liesel-install-jss and test-install.html.
+Congratulations! If the file test-install.html was created and ends with the message "Liesel and RLiesel installed successfully", everything worked out as expected. On Windows, you may find the file by opening the File Explorer, then clicking on Linux in the sidebar, then on Ubuntu, home, your user name, liesel-jss and test-install.html.
+
+### Installing Liesel natively on Windows (without WSL, not recommended)
+
+Installing Liesel natively on Windows is possible but incompatible with Conda. Instead, you need to perform the following steps manually:
+
+- Install Python.
+- Install Liesel.
+- Optionally, install the [pygraphviz](https://pygraphviz.github.io/) package.
+- Install R.
+- Install RLiesel.
+- Install [Quarto](https://quarto.org/).
+- Make sure the [reticulate](https://rstudio.github.io/reticulate/) package uses the right version of Python (or the right virtual environment) and finds the Liesel package when running through Quarto.
+
+## Supplementary material
+
+The installation instructions above install Liesel and RLiesel from PyPI and GitHub, but the source code is included in the supplementary material for documentation purposes (liesel-0.2.9.zip and rliesel-0.0.2.zip).
+

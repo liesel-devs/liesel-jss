@@ -1,4 +1,4 @@
-name: liesel-install-jss
+name: liesel-jss
 channels:
   - conda-forge
   - nodefaults
