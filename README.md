@@ -69,7 +69,7 @@ The running example and the case studies use [Quarto](https://quarto.org/), a pu
 
 ### Running example: Bayesian regression
 
-Make sure you're still in the liesel-jss directory and have the liesel-jss environment activated (see [above](#installing-liesel)). If that's the case, execute the running example as follows:
+Make sure you're still in the liesel-jss directory and have the liesel-jss environment activated (see [above](#installing-liesel)), then execute the running example as follows:
 
 ```sh
 quarto render supplement/1-running-example/example.qmd
@@ -79,7 +79,7 @@ The results are stored in the file supplement/1-running-example/example.html.
 
 ### Case study: Sampling schemes
 
-This case study requires the installation of a few additional R packages:
+The case study on sampling schemes requires some additional R packages:
 
 ```sh
 conda install r-dplyr r-forcats r-stringr r-tidyr
@@ -96,4 +96,20 @@ The results are stored in the file supplement/2-case-study-sampling/case-study.h
 
 ### Case study: Species counts
 
-TODO
+The case study on species counts requires a git submodule, an additional Python package and a few more R packages:
+
+```sh
+git submodule update --init
+pip install supplement/3-case-study-species
+conda install r-dplyr r-lubridate r-patchwork r-purrr r-readr r-sf r-stringr r-tidyr
+```
+
+To replicate a part of the real-world application of Riebl, Glatthorn, and Kneib (2023), run the following command:
+
+```sh
+quarto render supplement/3-case-study-species/paper/application/rtg-2300.qmd -P taxon:col -P distribution:negbin
+```
+
+This command estimates the multi-species count model (MSCM) for the taxon of collembolas with a negative binomial count distribution, including the predictor specification, the derived quantities and the MCMC scheme outlined in the JSS manuscript.
+
+You may find the results in the directory supplement/3-case-study-species/paper/application.
