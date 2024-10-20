@@ -1,0 +1,3 @@
+[submodule "supplement/3-case-study-species"]
+	path = supplement/3-case-study-species
+	url = https://github.com/hriebl/mscm.git
