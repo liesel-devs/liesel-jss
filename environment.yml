@@ -6,7 +6,7 @@ dependencies:
   # - blas=*=netlib
   - pip
   - pygraphviz
-  - python
+  - python<3.13
   - quarto
   - r-base
   - r-ggplot2
