@@ -104,12 +104,13 @@ pip install supplement/3-case-study-species
 conda install r-dplyr r-lubridate r-patchwork r-purrr r-readr r-sf r-stringr r-tidyr
 ```
 
-To replicate a part of the real-world application of Riebl, Glatthorn, and Kneib (2023), run the following command:
+To replicate a part of the real-world application of Riebl, Glatthorn, and Kneib (2023), run the following command (this may take about an hour to finish!):
 
 ```sh
-quarto render supplement/3-case-study-species/paper/application/rtg-2300.qmd -P taxon:col -P distribution:negbin
+quarto render supplement/3-case-study-species/paper/application/rtg-2300.qmd \
+    -P taxon:col -P distribution:negbin
 ```
 
-This command estimates the multi-species count model (MSCM) for the taxon of collembolas with a negative binomial count distribution, including the predictor specification, the derived quantities and the MCMC scheme outlined in the JSS manuscript.
+This will estimate the multi-species count model (MSCM) for the taxon of collembolas with a negative binomial count distribution, including the predictor specification, the derived quantities and the MCMC scheme outlined in the JSS manuscript.
 
 You may find the results in the directory supplement/3-case-study-species/paper/application.
