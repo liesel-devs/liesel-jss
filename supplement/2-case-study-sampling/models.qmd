@@ -1,6 +1,6 @@
 ```{r}
 gb <- liesel(
-  response = lidar$logratio,
+  response = logratio,
   distribution = "Normal",
   predictors = list(
     loc = predictor(~ s(range, bs = "ps"), inverse_link = "Identity"),
@@ -23,8 +23,8 @@ _vars["scale_np0_tau2"].value = 1.0
 
 model1 = gb.build_model(copy=True)
 
-gb.transform(_vars["loc_np0_tau2"], tfb.Exp)
-gb.transform(_vars["scale_np0_tau2"], tfb.Exp)
+_ = _vars["loc_np0_tau2"].transform(tfb.Exp())
+_ = _vars["scale_np0_tau2"].transform(tfb.Exp())
 
 model2 = gb.build_model()
 

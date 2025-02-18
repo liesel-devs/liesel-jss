@@ -36,7 +36,7 @@ git clone https://github.com/hriebl/liesel-jss.git
 cd liesel-jss
 conda env create -f environment.yml
 conda activate liesel-jss
-Rscript -e "remotes::install_github('liesel-devs/rliesel@v0.0.2')"
+Rscript -e "remotes::install_github('liesel-devs/rliesel')" #TODO, fix a version once released
 ```
 
 Check if Liesel and RLiesel are installed and working:

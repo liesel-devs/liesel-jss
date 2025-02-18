@@ -75,6 +75,7 @@ engine.sample_all_epochs()
 ```
 
 ```{python}
+#| label: run-splines
 results = engine.get_results()
 samples = results.get_posterior_samples()
 
@@ -110,7 +111,7 @@ ggplot(df, aes(range, value)) +
   facet_wrap(vars(node), scales = "free") +
   geom_point(data = df_lidar) +
   geom_line(aes(group = sample), alpha = 0.01) +
-  geom_line(data = df_mean, color = 2, size = 1) +
+  geom_line(data = df_mean, color = 2, linewidth = 1) +
   scale_x_continuous(expand = c(0, 0)) +
   xlab("Range") +
   ylab(NULL)
@@ -119,6 +120,8 @@ ggplot(df, aes(range, value)) +
 ## Timings of the different sampling schemes
 
 ```{python}
+#| label: run-timings
+
 def time_scheme(model, kernels):
     builder = gs.EngineBuilder(seed=1337, num_chains=1)
 
@@ -184,6 +187,7 @@ ggplot(times) +
 ## ESS of the different sampling schemes
 
 ```{python}
+#| label: run-ess
 def ess_scheme(model, kernels):
     results = sample_scheme(model, kernels, num_chains=30)
     summary = gs.Summary(results, per_chain=True)

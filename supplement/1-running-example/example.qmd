@@ -57,7 +57,7 @@ tfd = tfp.distributions
 # we build the model bottom-up
 
 # first we define the prior for sigma
-sigma = lsl.Param(
+sigma = lsl.Var.new_param(
     1.0,
     lsl.Dist(tfd.HalfCauchy, loc=0.0, scale=1.0),
     name="sigma",
@@ -65,7 +65,7 @@ sigma = lsl.Param(
 
 # then the conditional prior for beta which takes the sigma variable as an argument
 k = data.design_matrix.shape[1]
-beta = lsl.Param(
+beta = lsl.Var.new_param(
     np.zeros(k),
     lsl.Dist(
         lambda s: tfd.MultivariateNormalDiag(
@@ -87,7 +87,7 @@ y_hat = lsl.Var(
 )
 
 # and finally the likelihood (takes the variables y_hat and sigma as arguments)
-y = lsl.Obs(
+y = lsl.Var.new_obs(
     data.response,
     lsl.Dist(tfd.Normal, loc=y_hat, scale=sigma),
     name="y",
@@ -125,7 +125,7 @@ del model
 # create a new GraphBuilder and transform sigma
 # add the nodes and vars back
 gb = lsl.GraphBuilder()
-gb.transform(vars["sigma"], tfp.bijectors.Exp)
+_ = vars["sigma"].transform(tfp.bijectors.Exp())
 gb.add(vars["y"])
 
 model = gb.build_model()
@@ -146,7 +146,7 @@ lsl.plot_vars(model)
 import jax.numpy as jnp
 import liesel.goose as gs
 
-interface = lsl.GooseModel(model)
+interface = gs.LieselInterface(model)
 
 
 def draw_beta(prng_key, model_state):

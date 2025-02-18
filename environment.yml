@@ -16,4 +16,4 @@ dependencies:
   - r-reticulate
   - r-rmarkdown
   - pip:
-    - liesel<0.3
+    - liesel<0.4
