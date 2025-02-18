@@ -70,7 +70,7 @@ beta = lsl.Var.new_param(
     lsl.Dist(
         lambda s: tfd.MultivariateNormalDiag(
             loc=np.zeros(k, dtype=np.float32),
-            scale_diag=s**2 * 100 * np.ones(k, dtype=np.float32),
+            scale_diag=s * 10 * np.ones(k, dtype=np.float32),
         ),
         s=sigma,
     ),
