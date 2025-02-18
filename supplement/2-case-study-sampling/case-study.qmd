@@ -8,8 +8,8 @@ format:
   html:
     embed-resources: true
 
-save-plots: true
-post-comp: true
+save-plots: false
+post-comp: false
 ---
 
 Code documentation for the first case study on different sampling schemes in the JSS paper "Liesel: A Probabilistic Programming Framework for Developing Semi-Parametric Regression Models and Custom Bayesian Inference Algorithms" by Hannes Riebl, Paul F.V. Wiemann and Thomas Kneib.
