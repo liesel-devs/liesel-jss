@@ -36,7 +36,7 @@ git clone https://github.com/hriebl/liesel-jss.git
 cd liesel-jss
 conda env create -f environment.yml
 conda activate liesel-jss
-Rscript -e "remotes::install_github('liesel-devs/rliesel')" #TODO, fix a version once released
+Rscript -e "remotes::install_github('liesel-devs/rliesel@v0.0.3')"
 ```
 
 Check if Liesel and RLiesel are installed and working:
@@ -91,6 +91,8 @@ Now, run the case study as follows:
 ```sh
 quarto render supplement/2-case-study-sampling/case-study.qmd
 ```
+
+*Note*: This case study was conducted with the environment variable `XLA_FLAGS=--xla_cpu_use_thunk_runtime=false` set to mitigate a performance regression caused by the new XLA backend for CPUs. We anticipate this issue will be resolved in a future update. For more details, see [this issue](https://github.com/liesel-devs/liesel/issues/242).
 
 The results are stored in the file supplement/2-case-study-sampling/case-study.html.
 
