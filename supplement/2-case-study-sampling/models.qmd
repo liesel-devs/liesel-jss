@@ -55,8 +55,8 @@ kernels_nuts1 = [gs.NUTSKernel(loc_param + scale_param)]
 kernels_nuts2 = [gs.NUTSKernel(loc_param), gs.NUTSKernel(scale_param)]
 
 kernels_hmc2 = [
-    gs.HMCKernel(loc_param, num_integration_steps = 64),
-    gs.HMCKernel(scale_param, num_integration_steps = 64)
+    gs.HMCKernel(loc_param, num_integration_steps = 512),
+    gs.HMCKernel(scale_param, num_integration_steps = 256)
 ]
 
 
