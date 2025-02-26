@@ -29,7 +29,7 @@ library(tidyr)
 set.seed(1337)
 data(lidar)
 
-options(scipen=999)
+options(scipen = 999)
 
 theme_set(theme_minimal())
 
@@ -79,6 +79,7 @@ engine.sample_all_epochs()
 
 ```{python}
 #| label: run-splines
+
 results = engine.get_results()
 samples = results.get_posterior_samples()
 
@@ -121,9 +122,8 @@ ggplot(df, aes(range, value)) +
 ```
 
 ::: {.content-hidden unless-meta="save-plots"}
-
 ```{r}
-ggsave("estimates.png", width=8, height=4, dpi=600)
+ggsave("estimates.png", width = 8, height = 4, dpi = 600)
 ```
 :::
 
@@ -196,7 +196,7 @@ ggplot(times) +
 
 ::: {.content-hidden unless-meta="save-plots"}
 ```{r}
-ggsave("timings.png", width=8, height=4, dpi=600)
+ggsave("timings.png", width = 8, height = 4, dpi = 600)
 ```
 :::
 
@@ -204,6 +204,7 @@ ggsave("timings.png", width=8, height=4, dpi=600)
 
 ```{python}
 #| label: run-ess
+
 def ess_scheme(model, kernels):
     results = sample_scheme(model, kernels, num_chains=30)
     summary = gs.Summary(results, per_chain=True)
@@ -334,7 +335,5 @@ cat(gsub("\\\\hline\n", "& ", knitr::kable(tab_ess_per_s, "latex", 2)))
 ```
 
 ::: {.content-hidden unless-meta="post-comp"}
-
 {{< include _post_comp.qmd >}}
-
 :::
