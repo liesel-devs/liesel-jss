@@ -1,0 +1,102 @@
+## Posterior comparisons
+
+Comparisons of the posterior based on 4 chains with 1000 posterior samples. Summary reports also include potential issues during sampling.
+
+```{python}
+def compare_scheme(model, kernels, reference=None):
+    results = sample_scheme(model, kernels, num_chains=4)
+    summary = gs.Summary(results)
+
+    if reference is not None:
+        summary_df = summary._param_df().iloc[:, 1:6]
+        reference_df = reference._param_df().iloc[:, 1:6]
+        diff = summary_df - reference_df
+    else:
+        diff = None
+
+    return summary, diff
+```
+
+### IWLS-Gibbs
+
+```{python}
+#| results: hide
+
+summary_iwls_gibbs, diff = compare_scheme(model1, kernels_iwls_gibbs)
+```
+
+```{python}
+summary_iwls_gibbs
+```
+
+### NUTS-Gibbs
+
+```{python}
+#| results: hide
+
+summary, diff = compare_scheme(model1, kernels_nuts_gibbs, summary_iwls_gibbs)
+```
+
+```{python}
+summary
+```
+
+#### Absolute differences between NUTS-Gibbs and IWLS-Gibbs
+
+```{python}
+diff
+```
+
+### NUTS1
+
+```{python}
+#| results: hide
+
+summary, diff = compare_scheme(model2, kernels_nuts1, summary_iwls_gibbs)
+```
+
+```{python}
+summary
+```
+
+#### Absolute differences between NUTS1 and IWLS-Gibbs
+
+```{python}
+diff
+```
+
+### NUTS2
+
+```{python}
+#| results: hide
+
+summary, diff = compare_scheme(model2, kernels_nuts2, summary_iwls_gibbs)
+```
+
+```{python}
+summary
+```
+
+#### Absolute differences between NUTS2 and IWLS-Gibbs
+
+```{python}
+diff
+```
+
+### HMC2
+
+```{python}
+#| results: hide
+
+summary, diff = compare_scheme(model2, kernels_hmc2, summary_iwls_gibbs)
+```
+
+```{python}
+summary
+```
+
+#### Absolute differences between HMC2 and IWLS-Gibbs
+
+```{python}
+diff
+```

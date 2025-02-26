@@ -7,6 +7,9 @@ author:
 format:
   html:
     embed-resources: true
+
+save-plots: false
+post-comp: false
 ---
 
 Code documentation for the first case study on different sampling schemes in the JSS paper "Liesel: A Probabilistic Programming Framework for Developing Semi-Parametric Regression Models and Custom Bayesian Inference Algorithms" by Hannes Riebl, Paul F.V. Wiemann and Thomas Kneib.
@@ -26,7 +29,7 @@ library(tidyr)
 set.seed(1337)
 data(lidar)
 
-options(scipen=999)
+options(scipen = 999)
 
 theme_set(theme_minimal())
 
@@ -60,7 +63,7 @@ import liesel.model as lsl
 import liesel.goose as gs
 ```
 
-{{< include models.qmd >}}
+{{< include _models.qmd >}}
 
 ## Results from the IWLS-Gibbs sampling scheme
 
@@ -75,6 +78,8 @@ engine.sample_all_epochs()
 ```
 
 ```{python}
+#| label: run-splines
+
 results = engine.get_results()
 samples = results.get_posterior_samples()
 
@@ -110,15 +115,23 @@ ggplot(df, aes(range, value)) +
   facet_wrap(vars(node), scales = "free") +
   geom_point(data = df_lidar) +
   geom_line(aes(group = sample), alpha = 0.01) +
-  geom_line(data = df_mean, color = 2, size = 1) +
+  geom_line(data = df_mean, color = 2, linewidth = 1) +
   scale_x_continuous(expand = c(0, 0)) +
   xlab("Range") +
   ylab(NULL)
 ```
 
+::: {.content-hidden unless-meta="save-plots"}
+```{r}
+ggsave("estimates.png", width = 8, height = 4, dpi = 600)
+```
+:::
+
 ## Timings of the different sampling schemes
 
 ```{python}
+#| label: run-timings
+
 def time_scheme(model, kernels):
     builder = gs.EngineBuilder(seed=1337, num_chains=1)
 
@@ -181,9 +194,17 @@ ggplot(times) +
   scale_fill_brewer(type = "qual", palette = 7)
 ```
 
+::: {.content-hidden unless-meta="save-plots"}
+```{r}
+ggsave("timings.png", width = 8, height = 4, dpi = 600)
+```
+:::
+
 ## ESS of the different sampling schemes
 
 ```{python}
+#| label: run-ess
+
 def ess_scheme(model, kernels):
     results = sample_scheme(model, kernels, num_chains=30)
     summary = gs.Summary(results, per_chain=True)
@@ -312,3 +333,7 @@ tab_ess_per_s <- ess %>%
 cat(gsub("\\\\hline\n", "& ", knitr::kable(tab_ess, "latex", 2)))
 cat(gsub("\\\\hline\n", "& ", knitr::kable(tab_ess_per_s, "latex", 2)))
 ```
+
+::: {.content-hidden unless-meta="post-comp"}
+{{< include _post_comp.qmd >}}
+:::
