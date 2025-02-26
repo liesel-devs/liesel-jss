@@ -36,7 +36,7 @@ git clone https://github.com/hriebl/liesel-jss.git
 cd liesel-jss
 conda env create -f environment.yml
 conda activate liesel-jss
-Rscript -e "remotes::install_github('liesel-devs/rliesel@v0.0.3')"
+Rscript -e "remotes::install_github('liesel-devs/rliesel@v0.0.3', upgrade = FALSE)"
 ```
 
 Check if Liesel and RLiesel are installed and working:
@@ -83,7 +83,7 @@ The case study on sampling schemes requires some additional R packages:
 
 ```sh
 conda install r-dplyr r-forcats r-stringr r-tidyr
-Rscript -e "remotes::install_cran('SemiPar')"
+Rscript -e "remotes::install_cran('SemiPar', upgrade = FALSE)"
 ```
 
 Now, run the case study as follows:
