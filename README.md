@@ -63,7 +63,7 @@ Installing Liesel natively on Windows is possible but incompatible with Conda. I
 
 ## Supplementary material
 
-The instructions above install Liesel and RLiesel from PyPI and GitHub, but the source code is included in the supplementary material for documentation purposes (liesel-0.2.9.zip and rliesel-0.0.2.zip).
+The instructions above install Liesel and RLiesel from PyPI and GitHub, but the source code is included in the supplementary material for documentation purposes (liesel-0.3.3.zip and rliesel-0.0.3.zip).
 
 The running example and the case studies use [Quarto](https://quarto.org/), a publishing system that allows for a seamless integration of Python and R code as well as the corresponding documentation and renders the computation results (tables and figures) to high-quality PDF or HTML documents.
 
