@@ -32,7 +32,7 @@ For details, see [the official Micromamba installation instructions](https://mam
 Clone this repository and create a Conda environment with Liesel and RLiesel installed:
 
 ```sh
-git clone https://github.com/hriebl/liesel-jss.git
+git clone https://github.com/liesel-devs/liesel-jss.git
 cd liesel-jss
 conda env create -f environment.yml
 conda activate liesel-jss
